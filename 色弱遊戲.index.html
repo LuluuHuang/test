@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>色弱遊戲</title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        body{
+            background-color: rgb(234, 228, 234);
+        }
+        .main,.end{
+            width: 300px;
+            height: 400px;
+            margin: 100px auto;
+            border: 3px solid rgb(61, 63, 82);
+            background-color: rgb(184, 197, 228);
+            border-radius: 30px;
+            display: flex;
+            justify-content:space-evenly;
+            flex-direction: column;
+            align-items: center;
+        }
+        .main.off{
+            display: none;
+        }
+        .end{
+            display: none;
+        }
+        .end.act{
+            display: flex;
+        }
+        .title,.gameover{
+            font-size: 50px;
+            margin: 0;
+            font-weight: bold
+        }
+        .rules{
+            width: 200px;
+            text-align: center;
+        }
+        .comment,.end_score{
+            font-size: 20px;
+        }
+        .btn_start,.restart{
+            width: 100px;
+            height: 50px;
+            background-color: bisque;
+            font-size: 20px;
+            border-radius: 20px;
+        }
+        .play{
+            display: none;
+        }
+        .play.act{
+            display: flex;
+            /* display: none; */
+            flex-direction: column;
+        }
+        .square{
+            width: 400px;
+            height: 400px;
+            margin: 100px auto;
+            border: 10px solid white;
+            background-color: white;
+            border-radius: 30px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .box{
+            width: 600px;
+            display: flex;
+            margin: auto;
+        }
+        .box2{
+            background-color: lightblue;
+            border: 5px solid white;
+            border-radius: 30px;
+        }
+        .ans{
+            opacity: 0.6;
+        }
+        .box2.ans.act{
+            box-shadow: 2px 2px 10px rgba(0,0,0,5);
+        }
+        .timer,.sos,.stop{
+            width: 130px;
+            height: 50px;
+            margin: auto;
+            text-align: center;
+            line-height: 45px;
+            border-radius: 10px;
+            border: 2px solid black;
+            background-color: rgb(183, 175, 163);
+        }
+        .score_box{
+            width: 130px;
+            height: 50px;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            line-height: 45px;
+            border-radius: 10px;
+            border: 2px solid black;
+            background-color: rgb(183, 175, 163);
+        }
+    </style>
+</head>
+<body>
+    <!-- 開始畫面 -->
+    <div class="main">
+        <p class="title">色塊遊戲 </p>
+        <p class="rules">請找出不一樣的顏色<br>按下按鈕即可開始遊戲<br>GOGO!</p>
+        <button class="btn_start">開始遊戲</button>
+    </div>
+    <!-- 遊戲畫面 -->
+    <div class="play">
+        <div class="square"></div>
+        <div class="box">
+            <div class="timer"></div>
+            <div class="score_box">您的分數是：<div class="score"></div></div>
+            <div class="sos">SOS</div>
+            <div class="stop">STOP</div>
+        </div>
+    </div>
+    <!-- 結束畫面 -->
+    <div class="end">
+        <p class="gameover">遊戲結束</p>
+        <p class="end_score"></p>
+        <p class="comment"></p>
+        <button class="restart">重新開始</button>
+    </div>
+
+
+    <script>
+        //  抓取 開始畫面、開始按鈕
+        const main = document.querySelector('.main')
+        const btn_start = document.querySelector('.btn_start')
+
+        //抓取 遊戲畫面、分數、倒數計時、遊戲方塊、停止按鈕、SOS按鈕
+        const play = document.querySelector('.play')
+        let score = document.querySelector('.score')
+        const timer = document.querySelector('.timer')
+        const square = document.querySelector('.square')
+        const stop = document.querySelector('.stop')
+        const sos = document.querySelector('.sos')
+
+        //抓取 結束畫面
+        const end = document.querySelector('.end')
+        const end_score = document.querySelector('.end_score')
+        const comment = document.querySelector('.comment')
+        const restart = document.querySelector('.restart')
+
+        //設定整個頁面的共同變數,方便使用
+        var timeleft //記錄剩餘時間
+        var level //記錄目前難度
+        var ans //記錄答案
+        var difficulty
+
+        // 當開始按鈕被按下
+        btn_start.onclick = function(){
+            //分數＋時間＋難度初始化
+            score.innerHTML = 0
+            //為什麼不能打= '分數為：'+ 0 ??
+            timeleft = 30
+            timer.innerHTML = '剩餘時間' + timeleft + '秒'
+
+            level = 2
+            difficulty = 0.2
+
+            //將遊戲畫面相關物件顯示出來
+            square.classList.add('act')
+            timer.classList.add('act')
+            play.classList.add('act')
+
+
+            ans = Math.floor(Math.random()*(level*level))
+            r = Math.floor(Math.random()*200)
+            g = Math.floor(Math.random()*200)
+            b = Math.floor(Math.random()*200)
+
+            //亂數決定答案並生成方塊
+            for (let index = 0; index < level*level ; index++) {
+                if(index == ans){
+                    square.innerHTML += 
+                    `<div onclick="checkanswer(true)" 
+                    class="box2 ans" 
+                    style="width:${100/level}%;
+                    height:${100/level}%;
+                    background-color:rgb(${r},${g},${b});
+                    opacity:${difficulty};">
+                    </div>`
+                }else{
+                    square.innerHTML += 
+                    `<div onclick="checkanswer(false)" 
+                    class="box2" 
+                    style="width:${100/level}%;
+                    height:${100/level}%;
+                    background-color:rgb(${r},${g},${b})">
+                    </div>`
+                }//加上onclick="checkanswer()" 後面再用if判斷點擊是否正確
+            }
+
+            //關閉開始畫面
+            main.classList.add('off')
+            
+            //設定SOS按鈕,提示答案
+            sos.onclick = function(){
+                const ansbox = document.querySelector('.box2.ans')
+                //在點擊sos的時候先定義上面隨機產生的答案(同時有box2和ans的div)＝ansbox,再寫若點擊sos這個ansbox會產生陰影(上面的css有將.box2.ans再＋.act)
+                score.innerHTML -= 1
+                ansbox.classList.add('act')
+                //上面的css為什麼不可以寫ansbox.act??
+            }
+
+            //設定時間暫停按鈕
+            stop.onclick = function () {
+                alert('時間暫停請勿作弊')
+            }
+            //因為alert本身就有停止視窗運作的作用,所以就不需要再去設定時間停止
+
+
+            //設定倒數計時器
+            //count只是這個計時器的名稱
+            let count = setInterval(function(){
+                timeleft -= 1;
+                timer.innerHTML = `剩餘時間${timeleft}秒`
+                if(timeleft == 0){ //檢查倒數計時是否到了
+                    clearInterval(count) //停止倒數
+                    square.classList.remove('act') //停止顯示遊戲畫面
+                    timer.classList.remove('act')
+                    play.classList.remove('act')
+                    square.innerHTML = '' //清空舊答案
+
+
+                    end.classList.add('act') //顯示結束畫面及評語
+                    end_score.innerHTML = '總分為：'+ score.innerHTML + '分'//依照分數給評語
+                    if (score.innerHTML > 15) {
+                        comment.innerHTML = '恭喜過關～～'
+                    }else{
+                        comment.innerHTML = '再加油一點吧！！'
+                    }
+                }
+            },1000)
+
+            restart.onclick = function(){
+                console.log(restart);
+                main.classList.remove('off')
+                end.classList.remove('act')
+            }
+            
+
+
+        }
+            //判斷點擊是否正確的function,原理是利用guess傳過來的參數判斷是否正確
+            function checkanswer(guess){
+                //因為guess是布林值所以可以直接放入if當條件
+                if(guess){
+                    console.log(typeof score);
+                    score.innerHTML = parseInt(score.innerHTML) + 1  //答對＋1分,用parseInt()將字串轉數字
+
+                    square.innerHTML = '' //清空舊答案
+
+                    //重新亂數產生答案
+                    //如果不小心全都是256的話就選不出答案,所以變數設定200即可
+                    ans = Math.floor(Math.random()*(level*level))
+                    r = Math.floor(Math.random()*200)
+                    g = Math.floor(Math.random()*200)
+                    b = Math.floor(Math.random()*200)
+
+                    //設定難度
+                    //如果分數超過且已升級,即使之後扣分到低於前一等級分數,也不會降級
+                    //score.innerHTML >= 5 && level < 3 => 如果分數大於等於5且等級小於3,即等級等於3
+                    if (score.innerHTML >= 5 && level < 3) {
+                        level = 3
+                    }
+                    if(score.innerHTML >= 10 && level < 4){
+                        level = 4
+                        difficulty = 0.5
+                    }
+                    if(score.innerHTML >= 15 && level < 5){
+                        level = 5
+                        difficulty = 0.6
+                    }
+                    if(score.innerHTML >= 20 && level < 6){
+                        level = 6
+                        difficulty = 0.8
+                    }
+
+                    for (let index = 0; index < level*level ; index++) {
+                    if(index == ans){
+                        square.innerHTML += 
+                        `<div onclick="checkanswer(true)" 
+                        class="box2 ans" 
+                        style="width:${100/level}%;
+                        height:${100/level}%;
+                        background-color:rgb(${r},${g},${b});
+                        opacity:${difficulty};">
+                        </div>`
+                    }else{
+                        square.innerHTML += 
+                        `<div onclick="checkanswer(false)" 
+                        class="box2" 
+                        style="width:${100/level}%;
+                        height:${100/level}%;
+                        background-color:rgb(${r},${g},${b})">
+                        </div>`
+                    }//無論正確與否都需要再做一次選擇方塊
+            }
+                }else{
+                    //答錯扣分
+                    score.innerHTML -= 1
+                }
+                console.log(score);
+            }
+
+    </script>
+</body>
+</html>

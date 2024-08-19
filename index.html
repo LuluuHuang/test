@@ -32,6 +32,7 @@
                 const todoList = ref([]);
                 const todo = ref('');
                 const test = ref();
+                const test2 = ref();
                 const submit = (e) => {
                     e.preventDefault();
                     todoList.value.push({ text: todo.value, done: false });

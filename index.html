@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@3"></script>
+</head>
+<body>
+    <div id="app">
+        <form>
+            <p>待辦事項</p>
+            <input type="text" name="" id="" v-model="todo">
+            <input type="submit" value="送出" @click="submit">
+        </form>
+        <div v-for="(item,i) in todoList" :key="i">
+            <input type="checkbox" name="" :id="item.text" v-model="item.done">
+            <label :for="item.text">{{item.text}}</label>
+        </div>
+        <button type="button" @click="doneBtn">已完成</button>
+    </div>
+    
+    <script>
+        const { createApp, ref } = Vue;
+        createApp({
+            setup() {
+                const todoList = ref([]);
+                const todo = ref('');
+                const submit = (e) => {
+                    e.preventDefault();
+                    todoList.value.push({ text: todo.value, done: false });
+                    console.log(todoList.value);
+                    todo.value = '';
+                }
+                const doneBtn = () => {
+                    todoList.value = todoList.value.filter(item => !item.done);
+                }
+                return {
+                    todo,
+                    submit,
+                    todoList,
+                    doneBtn
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
